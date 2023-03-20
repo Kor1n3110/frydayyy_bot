@@ -3,6 +3,10 @@ import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler
 from config import BOT_TOKEN
 from email.mime import application
+import logging
+from telegram.ext import Application, MessageHandler, filters, CommandHandler
+from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardRemove
 
 # Запускаем логгирование
 logging.basicConfig(
@@ -11,6 +15,11 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+reply_keyboard = [['/genre', '/movie_details'],
+                  ['/actors', '/favorites']]
+
+markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
+
 
 # Напишем соответствующие функции.
 # Их сигнатура и поведение аналогичны обработчикам текстовых сообщений.
@@ -18,21 +27,24 @@ async def start(update, context):
     """Отправляет сообщение когда получена команда /start"""
     user = update.effective_user
     await update.message.reply_html(
-        rf"Привет, {user.mention_html()}! Я бот 'Пятница'. Я помогу тебе выбрать кино и напомнить тебе о нём. Для начала напиши '/help'",
+        rf"Привет, {user.mention_html()}! Я бот 'Пятница'. Я помогу тебе выбрать кино и напомнить тебе о нём. Для начала напиши '/help'.",
     )
 
 
 async def help_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text("Сейчас объясню правила пользования мной.")
-    await update.message.reply_text("Команда '/genre', даёт тебе возможность задать жанры кино")
+    await update.message.reply_text("Команда '/genre', даёт тебе возможность задать жанры кино.")
     await update.message.reply_text(
-        "С помощью команды '/movie_details', ты можешь уточнить, что ты хочешь видеть в кино (гонки, супергеоев и т.п.)")
-    await update.message.reply_text("Написав '/actors', ты можешь указать главных героев в фильме")
-    await update.message.reply_text("Воспользуясь командой '/remind', ты можешь поставить напоминание о кино")
+        "С помощью команды '/movie_details', ты можешь уточнить, что ты хочешь видеть в кино (гонки, супергеоев и т.п.).")
+    await update.message.reply_text("Написав '/actors', ты можешь указать главных героев в фильме.")
+    await update.message.reply_text("Воспользуясь командой '/remind', ты можешь поставить напоминание о кино.")
     await update.message.reply_text("""Перейти в избранные - '/favorites',
 Добавить в избранные - '/adding_favorites',
-Удалить из избранных - '/delete_favorites'""")
+Удалить из избранных - '/delete_favorites'.""")
+    await update.message.reply_text(
+        "Ты со мной можешь вести беседу через диалоговую клавиатуру, для её включения нужна команда '/keyboard', для выключения '/close_keyboard'.")
+    await update.message.reply_text("Выбырай кино на свой вкус.")
 
 
 async def actors_command(update, context):
@@ -70,6 +82,20 @@ async def delete_favorites_command(update, contex):
     await update.message.reply_text('Я удалю, когда буду готов...')
 
 
+async def keyboard(update, context):
+    await update.message.reply_text(
+        "Диалоговая клавиатура включена",
+        reply_markup=markup
+    )
+
+
+async def close_keyboard(update, context):
+    await update.message.reply_text(
+        "Диалоговая клавиатура выключена",
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+
 # Определяем функцию-обработчик сообщений.
 # У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
 async def echo(update, context):
@@ -103,7 +129,8 @@ def main():
     application.add_handler(CommandHandler("favorites", favorites_command))
     application.add_handler(CommandHandler("adding_favorites", adding_favorites_command))
     application.add_handler(CommandHandler("delete_favorites", delete_favorites_command))
-
+    application.add_handler(CommandHandler("keyboard", keyboard))
+    application.add_handler(CommandHandler("close_keyboard", close_keyboard))
     # Запускаем приложение.
     application.run_polling()
 
