@@ -1,12 +1,10 @@
 # Импортируем необходимые классы.
-import logging
-from telegram.ext import Application, MessageHandler, filters, CommandHandler
 from config import BOT_TOKEN
-from email.mime import application
 import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
+from email.mime import application
 
 # Запускаем логгирование
 logging.basicConfig(
@@ -15,14 +13,23 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-reply_keyboard = [['/genre', '/movie_details'],
-                  ['/actors', '/favorites']]
-
+reply_keyboard = [['/genre'], ['/movie_details'],
+                  ['/actors'], ['/favorites']]
+keyboard_FLAG = False
+genre_FLAG = False
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
+
+genre_reply_keyboard = [['фентези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
+                        ['боевик', 'биография', 'семейный'],
+                        ['исторический', 'мультфильм'], ['НАЗАД']]
+
+genre_markup = ReplyKeyboardMarkup(genre_reply_keyboard, one_time_keyboard=False)
 
 
 # Напишем соответствующие функции.
 # Их сигнатура и поведение аналогичны обработчикам текстовых сообщений.
+
+
 async def start(update, context):
     """Отправляет сообщение когда получена команда /start"""
     user = update.effective_user
@@ -33,18 +40,16 @@ async def start(update, context):
 
 async def help_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
-    await update.message.reply_text("Сейчас объясню правила пользования мной.")
-    await update.message.reply_text("Команда '/genre', даёт тебе возможность задать жанры кино.")
-    await update.message.reply_text(
-        "С помощью команды '/movie_details', ты можешь уточнить, что ты хочешь видеть в кино (гонки, супергеоев и т.п.).")
-    await update.message.reply_text("Написав '/actors', ты можешь указать главных героев в фильме.")
-    await update.message.reply_text("Воспользуясь командой '/remind', ты можешь поставить напоминание о кино.")
-    await update.message.reply_text("""Перейти в избранные - '/favorites',
-Добавить в избранные - '/adding_favorites',
-Удалить из избранных - '/delete_favorites'.""")
-    await update.message.reply_text(
-        "Ты со мной можешь вести беседу через диалоговую клавиатуру, для её включения нужна команда '/keyboard', для выключения '/close_keyboard'.")
-    await update.message.reply_text("Выбырай кино на свой вкус.")
+    await update.message.reply_text("""    Сейчас объясню правила пользования мной.
+    Команда '/genre', даёт тебе возможность задать жанры кино.
+    С помощью команды '/movie_details', ты можешь уточнить, что ты хочешь видеть в кино (гонки, супергеоев и т.п.).
+    Написав '/actors', ты можешь указать актёров, игравшие главные роли в фильме.
+    Воспользуясь командой '/remind', ты можешь поставить напоминание о кино.
+    Перейти в избранные - '/favorites',
+    Добавить в избранные - '/adding_favorites',
+    Удалить из избранных - '/delete_favorites'.
+    Ты со мной можешь вести беседу через диалоговую клавиатуру, для её включения нужна команда '/keyboard', для выключения '/close_keyboard'.
+    Выбырай кино на свой вкус.""")
 
 
 async def actors_command(update, context):
@@ -53,8 +58,19 @@ async def actors_command(update, context):
 
 
 async def genre_command(update, context):
+    global keyboard_FLAG
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('Ты выбираешь жанр кино')
+    if keyboard_FLAG is False:
+        await update.message.reply_text(
+            "Диалоговая клавиатура выключена",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        keyboard_FLAG = False
+    await update.message.reply_text(
+        "Диалоговая клавиатура включена",
+        reply_markup=genre_markup
+    )
 
 
 async def movie_details_command(update, context):
@@ -83,17 +99,27 @@ async def delete_favorites_command(update, contex):
 
 
 async def keyboard(update, context):
+    global genre_FLAG, keyboard_FLAG
+    if genre_FLAG is True:
+        await update.message.reply_text(
+            "Диалоговая клавиатура выключена",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        genre_FLAG = False
     await update.message.reply_text(
         "Диалоговая клавиатура включена",
         reply_markup=markup
     )
+    keyboard_FLAG = True
 
 
 async def close_keyboard(update, context):
+    global keyboard_FLAG
     await update.message.reply_text(
         "Диалоговая клавиатура выключена",
         reply_markup=ReplyKeyboardRemove()
     )
+    keyboard_FLAG = False
 
 
 # Определяем функцию-обработчик сообщений.
@@ -111,7 +137,6 @@ def main():
     # Создаём объект Application.
     # Вместо слова "TOKEN" надо разместить полученный от @BotFather токен
     application = Application.builder().token(BOT_TOKEN).build()
-
     # Создаём обработчик сообщений типа filters.TEXT
     # из описанной выше асинхронной функции echo()
     # После регистрации обработчика в приложении
