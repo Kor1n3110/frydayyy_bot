@@ -1,7 +1,7 @@
 # Импортируем необходимые классы.
 from config import BOT_TOKEN
 import logging
-from telegram.ext import Application, MessageHandler, filters, CommandHandler
+from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from email.mime import application
@@ -21,13 +21,13 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 genre_reply_keyboard = [['фентези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
                         ['боевик', 'биография', 'семейный'],
-                        ['исторический', 'мультфильм'], ['НАЗАД']]
+                        ['исторический', 'мультфильм'], ['НАЗАД', 'ВЫБРАЛ']]
 
 genre_markup = ReplyKeyboardMarkup(genre_reply_keyboard, one_time_keyboard=False)
 
-
-# Напишем соответствующие функции.
-# Их сигнатура и поведение аналогичны обработчикам текстовых сообщений.
+Genre = []
+Movie_deteils = []
+Actors = []
 
 
 async def start(update, context):
@@ -60,15 +60,14 @@ async def actors_command(update, context):
 async def genre_command(update, context):
     global keyboard_FLAG
     """Отправляет сообщение когда получена команда /help"""
-    await update.message.reply_text('Ты выбираешь жанр кино')
-    if keyboard_FLAG is False:
+    if keyboard_FLAG is True:
         await update.message.reply_text(
             "Диалоговая клавиатура выключена",
             reply_markup=ReplyKeyboardRemove()
         )
         keyboard_FLAG = False
     await update.message.reply_text(
-        "Диалоговая клавиатура включена",
+        "Виберите жанры кино",
         reply_markup=genre_markup
     )
 
@@ -122,17 +121,6 @@ async def close_keyboard(update, context):
     keyboard_FLAG = False
 
 
-# Определяем функцию-обработчик сообщений.
-# У неё два параметра, updater, принявший сообщение и контекст - дополнительная информация о сообщении.
-async def echo(update, context):
-    # У объекта класса Updater есть поле message,
-    # являющееся объектом сообщения.
-    # У message есть поле text, содержащее текст полученного сообщения,
-    # а также метод reply_text(str),
-    # отсылающий ответ пользователю, от которого получено сообщение.
-    await update.message.reply_text('Прости я пока ещё не готов...')
-
-
 def main():
     # Создаём объект Application.
     # Вместо слова "TOKEN" надо разместить полученный от @BotFather токен
@@ -142,9 +130,6 @@ def main():
     # После регистрации обработчика в приложении
     # эта асинхронная функция будет вызываться при получении сообщения
     # с типом "текст", т. е. текстовых сообщений.
-    text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
-    # Регистрируем обработчик в приложении.
-    application.add_handler(text_handler)
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("genre", genre_command))
     application.add_handler(CommandHandler("movie_details", movie_details_command))
