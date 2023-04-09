@@ -66,7 +66,6 @@ async def genre_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     if keyboard_FLAG is True:
         await update.message.reply_text(
-            "Диалоговая клавиатура выключена",
             reply_markup=ReplyKeyboardRemove()
         )
         keyboard_FLAG = False
@@ -108,12 +107,10 @@ async def keyboard(update, context):
     global genre_FLAG, keyboard_FLAG
     if genre_FLAG is True:
         await update.message.reply_text(
-            "Диалоговая клавиатура выключена",
             reply_markup=ReplyKeyboardRemove()
         )
         genre_FLAG = False
     await update.message.reply_text(
-        "Диалоговая клавиатура включена",
         reply_markup=markup
     )
     keyboard_FLAG = True
@@ -122,7 +119,6 @@ async def keyboard(update, context):
 async def close_keyboard(update, context):
     global keyboard_FLAG
     await update.message.reply_text(
-        "Диалоговая клавиатура выключена",
         reply_markup=ReplyKeyboardRemove()
     )
     keyboard_FLAG = False
@@ -132,14 +128,28 @@ async def MOGHO(update, context):
     global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG
     if update.message.text == 'ВЫБРАЛ':
         await update.message.reply_text('Замечательно, вы выбрали жанр своего кино.')
+        if not Actors == []:
+            a = str(', '.join(Actors))
+        else:
+            a = 'Не выбрал...'
+        if not Genre == []:
+            b = str(', '.join(Genre))
+        else:
+            b = 'Не выбрал...'
+        if not Movie_deteils == []:
+            c = str(', '.join(Movie_deteils))
+        else:
+            c = 'Не выбрал...'
+        await update.message.reply_text(f'''Вы выбрали:
+Актёры: {a}
+Жанр: {b} 
+Детали: {c}''')
         if genre_FLAG is True:
             await update.message.reply_text(
-                "Диалоговая клавиатура выключена",
                 reply_markup=ReplyKeyboardRemove()
             )
             genre_FLAG = False
         await update.message.reply_text(
-            "Диалоговая клавиатура включена",
             reply_markup=markup
         )
         keyboard_FLAG = True
