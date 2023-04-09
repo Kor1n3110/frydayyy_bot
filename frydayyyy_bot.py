@@ -25,6 +25,7 @@ genre_reply_keyboard = [['фентези', 'ужасы', 'драма'], ['дет
 
 genre_markup = ReplyKeyboardMarkup(genre_reply_keyboard, one_time_keyboard=False)
 
+COMMAND = []
 Genre = []
 Movie_deteils = []
 Actors = []
@@ -53,12 +54,15 @@ async def help_command(update, context):
 
 
 async def actors_command(update, context):
+    global COMMAND
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('Ты указываешь главных героев кино')
+    COMMAND.append('Actors')
+
 
 
 async def genre_command(update, context):
-    global keyboard_FLAG
+    global keyboard_FLAG, COMMAND
     """Отправляет сообщение когда получена команда /help"""
     if keyboard_FLAG is True:
         await update.message.reply_text(
@@ -70,12 +74,15 @@ async def genre_command(update, context):
         "Виберите жанры кино",
         reply_markup=genre_markup
     )
+    COMMAND.append('Genre')
+    # await update.message.reply_text(str(', '.join(COMMAND)))
 
 
 async def movie_details_command(update, context):
+    global COMMAND
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('Пишешь, что ты хочешь видеть в кино')
-
+    COMMAND.append('Movie_deteils')
 
 async def remind_command(update, contex):
     """Отправляет сообщение когда получена команда /help"""
@@ -121,6 +128,40 @@ async def close_keyboard(update, context):
     keyboard_FLAG = False
 
 
+async def MOGHO(update, context):
+    global Genre, COMMAND, Movie_deteils, Actors
+    if COMMAND[-1] == 'Actors':
+        if update.message.text not in Actors:
+            Actors.append(update.message.text)
+            a = 'Ты выбрал: ' + ', '.join(Actors)
+            await update.message.reply_text(str(a))
+        else:
+            await update.message.reply_text('Вы уже добавили этого актёра')
+    elif COMMAND[-1] == 'Genre':
+        if update.message.text not in Genre:
+            Genre.append(update.message.text)
+            a = 'Ты выбрал: ' + ', '.join(Genre)
+            await update.message.reply_text(str(a))
+        else:
+            await update.message.reply_text('Вы уже добавили этот жанр')
+    else:
+        if update.message.text not in Movie_deteils:
+            Movie_deteils.append(update.message.text)
+            a = 'Ты выбрал: ' + ', '.join(Movie_deteils)
+            await update.message.reply_text(str(a))
+        else:
+            await update.message.reply_text('Вы уже добавили эту деталь')
+    # У объекта класса Updater есть поле message,
+    # являющееся объектом сообщения.
+    # У message есть поле text, содержащее текст полученного сообщения,
+    # а также метод reply_text(str),
+    # отсылающий ответ пользователю, от которого получено сообщение.
+    # -------------********************
+    # await update.message.reply_text(update.message.text)
+    # await update.message.reply_text(', '.join(COMMAND))
+    # -------------********************
+
+
 def main():
     # Создаём объект Application.
     # Вместо слова "TOKEN" надо разместить полученный от @BotFather токен
@@ -141,6 +182,9 @@ def main():
     application.add_handler(CommandHandler("delete_favorites", delete_favorites_command))
     application.add_handler(CommandHandler("keyboard", keyboard))
     application.add_handler(CommandHandler("close_keyboard", close_keyboard))
+    text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, MOGHO)
+    application.add_handler(text_handler)
+
     # Запускаем приложение.
     application.run_polling()
 
