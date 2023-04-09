@@ -129,23 +129,37 @@ async def close_keyboard(update, context):
 
 
 async def MOGHO(update, context):
-    global Genre, COMMAND, Movie_deteils, Actors
+    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG
+    if update.message.text == 'ВЫБРАЛ':
+        await update.message.reply_text('Замечательно, вы выбрали жанр своего кино.')
+        if genre_FLAG is True:
+            await update.message.reply_text(
+                "Диалоговая клавиатура выключена",
+                reply_markup=ReplyKeyboardRemove()
+            )
+            genre_FLAG = False
+        await update.message.reply_text(
+            "Диалоговая клавиатура включена",
+            reply_markup=markup
+        )
+        keyboard_FLAG = True
+        genre_FLAG = False
     if COMMAND[-1] == 'Actors':
-        if update.message.text not in Actors:
+        if update.message.text not in Actors and not update.message.text == 'ВЫБРАЛ':
             Actors.append(update.message.text)
             a = 'Ты выбрал: ' + ', '.join(Actors)
             await update.message.reply_text(str(a))
         else:
             await update.message.reply_text('Вы уже добавили этого актёра')
     elif COMMAND[-1] == 'Genre':
-        if update.message.text not in Genre:
+        if update.message.text not in Genre and not update.message.text == 'ВЫБРАЛ':
             Genre.append(update.message.text)
             a = 'Ты выбрал: ' + ', '.join(Genre)
             await update.message.reply_text(str(a))
         else:
             await update.message.reply_text('Вы уже добавили этот жанр')
     else:
-        if update.message.text not in Movie_deteils:
+        if update.message.text not in Movie_deteils and not update.message.text == 'ВЫБРАЛ':
             Movie_deteils.append(update.message.text)
             a = 'Ты выбрал: ' + ', '.join(Movie_deteils)
             await update.message.reply_text(str(a))
