@@ -21,7 +21,7 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 genre_reply_keyboard = [['фентези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
                         ['боевик', 'биография', 'семейный'],
-                        ['исторический', 'мультфильм'], ['СБРОС ПАРАМЕТРА', 'Выйти', 'ВЫБРАЛ']]
+                        ['исторический', 'мультфильм'], ['СБРОС ПАРАМЕТРА', 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ', 'ВЫБРАЛ']]
 
 genre_markup = ReplyKeyboardMarkup(genre_reply_keyboard, one_time_keyboard=False)
 
@@ -29,6 +29,13 @@ COMMAND = []
 Genre = []
 Movie_deteils = []
 Actors = []
+# *******
+Genre1 = []
+Movie_deteils1 = []
+Actors1 = []
+
+
+# *******
 
 
 async def start(update, context):
@@ -63,16 +70,10 @@ async def actors_command(update, context):
 async def genre_command(update, context):
     global keyboard_FLAG, COMMAND, genre_FLAG
     """Отправляет сообщение когда получена команда /help"""
-    if keyboard_FLAG is True:
-        await update.message.reply_text(
-            reply_markup=ReplyKeyboardRemove()
-        )
-        keyboard_FLAG = False
     await update.message.reply_text(
         "Виберите жанры кино",
         reply_markup=genre_markup
     )
-    genre_FLAG = True
     COMMAND.append('Genre')
     # await update.message.reply_text(str(', '.join(COMMAND)))
 
@@ -105,42 +106,28 @@ async def delete_favorites_command(update, contex):
 
 
 async def keyboard(update, context):
-    global genre_FLAG, keyboard_FLAG
-    if genre_FLAG is True:
-        await update.message.reply_text(
-            reply_markup=ReplyKeyboardRemove()
-        )
-        genre_FLAG = False
     await update.message.reply_text(
-        "Виберите жанры кино",
+        'Диалоговая клавиатура включена',
         reply_markup=markup
     )
-    keyboard_FLAG = True
 
 
 async def close_keyboard(update, context):
-    global keyboard_FLAG
     await update.message.reply_text(
         reply_markup=ReplyKeyboardRemove()
     )
-    keyboard_FLAG = False
 
 
 async def MOGHO(update, context):
-    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG
+    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1
     if update.message.text == 'ВЫБРАЛ':
-        if genre_FLAG is True:
-            await update.message.reply_text(
-                reply_markup=ReplyKeyboardRemove()
-            )
-            genre_FLAG = False
+        Genre = Genre1
+        Movie_deteils = Movie_deteils1
+        Actors = Actors1
         await update.message.reply_text(
-            "Виберите жанры кино",
+            "Замечательно, вы выбрали жанр своего кино.",
             reply_markup=markup
         )
-        genre_FLAG = False
-        keyboard_FLAG = True
-        await update.message.reply_text('Замечательно, вы выбрали жанр своего кино.')
         if not Actors == []:
             a = str(', '.join(Actors))
         else:
@@ -158,26 +145,49 @@ async def MOGHO(update, context):
 Жанр: {b} 
 Детали: {c}''')
     if COMMAND[-1] == 'Actors':
-        if update.message.text not in Actors and not update.message.text == 'ВЫБРАЛ':
-            Actors.append(update.message.text)
-            a = 'Ты выбрал: ' + ', '.join(Actors)
+        if update.message.text not in Actors1 and not (
+                update.message.text == 'ВЫБРАЛ' or update.message.text == 'СБРОС ПАРАМЕТРА' or update.message.text == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
+            Actors1.append(update.message.text)
+            a = 'Вы выбрали: ' + ', '.join(Actors1)
             await update.message.reply_text(str(a))
         else:
             await update.message.reply_text('Вы уже добавили этого актёра')
     elif COMMAND[-1] == 'Genre':
-        if update.message.text not in Genre and not update.message.text == 'ВЫБРАЛ':
-            Genre.append(update.message.text)
-            a = 'Ты выбрал: ' + ', '.join(Genre)
+        if update.message.text not in Genre1 and not (
+                update.message.text == 'ВЫБРАЛ' or update.message.text == 'СБРОС ПАРАМЕТРА' or update.message.text == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
+            Genre1.append(update.message.text)
+            a = 'Вы выбрали: ' + ', '.join(Genre1)
             await update.message.reply_text(str(a))
         else:
             await update.message.reply_text('Вы уже добавили этот жанр')
     else:
-        if update.message.text not in Movie_deteils and not update.message.text == 'ВЫБРАЛ':
-            Movie_deteils.append(update.message.text)
-            a = 'Ты выбрал: ' + ', '.join(Movie_deteils)
+        if update.message.text not in Movie_deteils1 and not (
+                update.message.text == 'ВЫБРАЛ' or update.message.text == 'СБРОС ПАРАМЕТРА' or update.message.text == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
+            Movie_deteils1.append(update.message.text)
+            a = 'Вы выбрали: ' + ', '.join(Movie_deteils1)
             await update.message.reply_text(str(a))
         else:
             await update.message.reply_text('Вы уже добавили эту деталь')
+    if update.message.text == 'СБРОС ПАРАМЕТРА':
+        if COMMAND[-1] == 'Genre':
+            Genre = []
+        elif COMMAND[-1] == 'Actors':
+            Actors = []
+        else:
+            Movie_deteils = []
+        await update.message.reply_text('Параметр сброшен')
+    if update.message.text == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ':
+        if COMMAND[-1] == 'Genre':
+            Genre1 = []
+        elif COMMAND[-1] == 'Actors':
+            Actors1 = []
+        else:
+            Movie_deteils1 = []
+            await update.message.reply_text(
+                "Вы вышли и сбросили параметр",
+                reply_markup=markup
+            )
+
     # У объекта класса Updater есть поле message,
     # являющееся объектом сообщения.
     # У message есть поле text, содержащее текст полученного сообщения,
