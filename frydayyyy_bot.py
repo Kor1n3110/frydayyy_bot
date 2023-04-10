@@ -21,7 +21,7 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 genre_reply_keyboard = [['фентези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
                         ['боевик', 'биография', 'семейный'],
-                        ['исторический', 'мультфильм'], ['НАЗАД', 'ВЫБРАЛ']]
+                        ['исторический', 'мультфильм'], ['СБРОС ПАРАМЕТРА', 'Выйти', 'ВЫБРАЛ']]
 
 genre_markup = ReplyKeyboardMarkup(genre_reply_keyboard, one_time_keyboard=False)
 
@@ -60,9 +60,8 @@ async def actors_command(update, context):
     COMMAND.append('Actors')
 
 
-
 async def genre_command(update, context):
-    global keyboard_FLAG, COMMAND
+    global keyboard_FLAG, COMMAND, genre_FLAG
     """Отправляет сообщение когда получена команда /help"""
     if keyboard_FLAG is True:
         await update.message.reply_text(
@@ -73,6 +72,7 @@ async def genre_command(update, context):
         "Виберите жанры кино",
         reply_markup=genre_markup
     )
+    genre_FLAG = True
     COMMAND.append('Genre')
     # await update.message.reply_text(str(', '.join(COMMAND)))
 
@@ -82,6 +82,7 @@ async def movie_details_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('Пишешь, что ты хочешь видеть в кино')
     COMMAND.append('Movie_deteils')
+
 
 async def remind_command(update, contex):
     """Отправляет сообщение когда получена команда /help"""
@@ -111,6 +112,7 @@ async def keyboard(update, context):
         )
         genre_FLAG = False
     await update.message.reply_text(
+        "Виберите жанры кино",
         reply_markup=markup
     )
     keyboard_FLAG = True
@@ -127,6 +129,17 @@ async def close_keyboard(update, context):
 async def MOGHO(update, context):
     global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG
     if update.message.text == 'ВЫБРАЛ':
+        if genre_FLAG is True:
+            await update.message.reply_text(
+                reply_markup=ReplyKeyboardRemove()
+            )
+            genre_FLAG = False
+        await update.message.reply_text(
+            "Виберите жанры кино",
+            reply_markup=markup
+        )
+        genre_FLAG = False
+        keyboard_FLAG = True
         await update.message.reply_text('Замечательно, вы выбрали жанр своего кино.')
         if not Actors == []:
             a = str(', '.join(Actors))
@@ -144,16 +157,6 @@ async def MOGHO(update, context):
 Актёры: {a}
 Жанр: {b} 
 Детали: {c}''')
-        if genre_FLAG is True:
-            await update.message.reply_text(
-                reply_markup=ReplyKeyboardRemove()
-            )
-            genre_FLAG = False
-        await update.message.reply_text(
-            reply_markup=markup
-        )
-        keyboard_FLAG = True
-        genre_FLAG = False
     if COMMAND[-1] == 'Actors':
         if update.message.text not in Actors and not update.message.text == 'ВЫБРАЛ':
             Actors.append(update.message.text)
