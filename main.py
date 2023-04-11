@@ -15,7 +15,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 reply_keyboard = [['/genre', '/movie_details'],
-                  ['/actors', '/favorites']]
+                  ['/actors', '/favorites'],
+                  ['/GO']]
 keyboard_FLAG = False
 genre_FLAG = False
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
@@ -61,6 +62,7 @@ async def help_command(update, context):
     Удалить из избранных - '/delete_favorites'.
     Ты со мной можешь вести беседу через диалоговую клавиатуру, для её включения нужна команда '/keyboard', для выключения '/close_keyboard'.
     Выбырай кино на свой вкус.""")
+    await update.message.reply_text("""    Чтобы начать поиск фильмов, воспользуйтесь командой '/GO'""")
 
 
 async def actors_command(update, context):
@@ -126,6 +128,27 @@ async def close_keyboard(update, context):
         '',
         reply_markup=ReplyKeyboardRemove()
     )
+
+
+async def GO(update, context):
+    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1
+    if not Actors == []:
+        a = str(', '.join(Actors))
+    else:
+        a = 'Не выбрал...'
+    if not Genre == []:
+        b = str(', '.join(Genre))
+    else:
+        b = 'Не выбрал...'
+    if not Movie_deteils == []:
+        c = str(', '.join(Movie_deteils))
+    else:
+        c = 'Не выбрал...'
+    await update.message.reply_text(f'''Вы выбрали:
+Актёры: {a}
+Жанр: {b} 
+Детали: {c}''')
+    await update.message.reply_text('Так, а сейчас будем искать кино по вашим интересам)')
 
 
 async def MOGHO(update, context):
@@ -200,9 +223,9 @@ async def MOGHO(update, context):
         elif update.message.text in Genre1:
             await update.message.reply_text('Вы уже добавили этот жанр')
     else:
-        if update.message.text not in Movie_deteils1 and not (
+        if update.message.text.lower() not in Movie_deteils1 and not (
                 update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
-            Movie_deteils1.append(update.message.text)
+            Movie_deteils1.append(update.message.text.lower())
             a = 'Вы выбрали: ' + ', '.join(Movie_deteils1)
             await update.message.reply_text(str(a))
         elif update.message.text in Movie_deteils1:
@@ -258,6 +281,7 @@ def main():
     application.add_handler(CommandHandler("delete_favorites", delete_favorites_command))
     application.add_handler(CommandHandler("keyboard", keyboard))
     application.add_handler(CommandHandler("close_keyboard", close_keyboard))
+    application.add_handler(CommandHandler("GO", GO))
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, MOGHO)
     application.add_handler(text_handler)
 
