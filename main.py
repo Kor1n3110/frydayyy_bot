@@ -6,6 +6,7 @@ from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from random import randint
 from email.mime import application
+
 # Запускаем логгирование
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -13,8 +14,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-reply_keyboard = [['/genre'], ['/movie_details'],
-                  ['/actors'], ['/favorites']]
+reply_keyboard = [['/genre', '/movie_details'],
+                  ['/actors', '/favorites']]
 keyboard_FLAG = False
 genre_FLAG = False
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
@@ -33,7 +34,9 @@ Actors = []
 Genre1 = []
 Movie_deteils1 = []
 Actors1 = []
-nasmeshka = ["Не понимаю, что вы выбрали, если вы ничего не выбрали... хотя ладно, мне никогда вас не понять", 'Вы же ничего не выбрали...', 'Вы шутите так?', 'Я промолчу...']
+nasmeshka = ["Не понимаю, что вы выбрали, если вы ничего не выбрали... хотя ладно, мне никогда вас не понять",
+             'Вы же ничего не выбрали...', 'Вы шутите так?', 'Я промолчу...']
+
 
 # *******
 
