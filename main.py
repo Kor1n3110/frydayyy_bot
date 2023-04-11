@@ -150,7 +150,7 @@ async def MOGHO(update, context):
             Actors1.append(update.message.text)
             a = 'Вы выбрали: ' + ', '.join(Actors1)
             await update.message.reply_text(str(a))
-        else:
+        elif update.message.text in Actors1:
             await update.message.reply_text('Вы уже добавили этого актёра')
     elif COMMAND[-1] == 'Genre':
         if update.message.text not in Genre1 and not (
@@ -158,7 +158,7 @@ async def MOGHO(update, context):
             Genre1.append(update.message.text)
             a = 'Вы выбрали: ' + ', '.join(Genre1)
             await update.message.reply_text(str(a))
-        else:
+        elif update.message.text in Genre1:
             await update.message.reply_text('Вы уже добавили этот жанр')
     else:
         if update.message.text not in Movie_deteils1 and not (
@@ -166,7 +166,7 @@ async def MOGHO(update, context):
             Movie_deteils1.append(update.message.text)
             a = 'Вы выбрали: ' + ', '.join(Movie_deteils1)
             await update.message.reply_text(str(a))
-        else:
+        elif update.message.text in Movie_deteils1:
             await update.message.reply_text('Вы уже добавили эту деталь')
     if update.message.text == 'СБРОС ПАРАМЕТРА':
         if COMMAND[-1] == 'Genre':
