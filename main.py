@@ -77,7 +77,10 @@ async def help_command(update, context):
 
     Выбырай кино на свой вкус.""")
     await update.message.reply_text("""    Чтобы найти кино по названию, воспользуйтесь командой '/title'""")
-    await update.message.reply_text("""    Чтобы начать поиск кино, воспользуйтесь командой '/GO'""")
+    await update.message.reply_text(
+        "    Чтобы начать поиск кино, воспользуйтесь командой '/GO'",
+        reply_markup=markup
+    )
 
 
 async def actors_command(update, context):
@@ -270,49 +273,50 @@ async def MOGHO(update, context):
 Актёры: {a}
 Жанр: {b} 
 Детали: {c}''')
-    if COMMAND[-1] == 'Actors':
-        if not COMMAND == 'Title' or update.message.text not in Actors1 and not (
-                update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
-            Actors1.append(update.message.text)
-            a = 'Вы выбрали: ' + ', '.join(Actors1)
-            await update.message.reply_text(str(a))
-        elif update.message.text in Actors1:
-            await update.message.reply_text('Вы уже добавили этого актёра')
-    elif COMMAND[-1] == 'Genre':
-        if not COMMAND == 'Title' or update.message.text not in Genre1 and not (
-                update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
-            Genre1.append(update.message.text)
-            a = 'Вы выбрали: ' + ', '.join(Genre1)
-            await update.message.reply_text(str(a))
-        elif update.message.text in Genre1:
-            await update.message.reply_text('Вы уже добавили этот жанр')
-    else:
-        if not COMMAND == 'Title' or update.message.text.lower() not in Movie_deteils1 and not (
-                update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
-            Movie_deteils1.append(update.message.text.lower())
-            a = 'Вы выбрали: ' + ', '.join(Movie_deteils1)
-            await update.message.reply_text(str(a))
-        elif update.message.text in Movie_deteils1:
-            await update.message.reply_text('Вы уже добавили эту деталь')
-    if update.message.text.upper() == 'СБРОС ПАРАМЕТРА':
-        if COMMAND[-1] == 'Genre':
-            Genre = []
-        elif COMMAND[-1] == 'Actors':
-            Actors = []
+    if not COMMAND[-1] == 'Title':
+        if COMMAND[-1] == 'Actors':
+            if update.message.text not in Actors1 and not (
+                    update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
+                Actors1.append(update.message.text)
+                a = 'Вы выбрали: ' + ', '.join(Actors1)
+                await update.message.reply_text(str(a))
+            elif update.message.text in Actors1:
+                await update.message.reply_text('Вы уже добавили этого актёра')
+        elif COMMAND[-1] == 'Genre':
+            if update.message.text not in Genre1 and not (
+                    update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
+                Genre1.append(update.message.text)
+                a = 'Вы выбрали: ' + ', '.join(Genre1)
+                await update.message.reply_text(str(a))
+            elif update.message.text in Genre1:
+                await update.message.reply_text('Вы уже добавили этот жанр')
         else:
-            Movie_deteils = []
-        await update.message.reply_text('Параметр сброшен')
-    if update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ':
-        if COMMAND[-1] == 'Genre':
-            Genre1 = []
-        elif COMMAND[-1] == 'Actors':
-            Actors1 = []
-        else:
-            Movie_deteils1 = []
-            await update.message.reply_text(
-                "Вы вышли и сбросили параметр",
-                reply_markup=markup
-            )
+            if update.message.text.lower() not in Movie_deteils1 and not (
+                    update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
+                Movie_deteils1.append(update.message.text.lower())
+                a = 'Вы выбрали: ' + ', '.join(Movie_deteils1)
+                await update.message.reply_text(str(a))
+            elif update.message.text in Movie_deteils1:
+                await update.message.reply_text('Вы уже добавили эту деталь')
+        if update.message.text.upper() == 'СБРОС ПАРАМЕТРА':
+            if COMMAND[-1] == 'Genre':
+                Genre = []
+            elif COMMAND[-1] == 'Actors':
+                Actors = []
+            else:
+                Movie_deteils = []
+            await update.message.reply_text('Параметр сброшен')
+        if update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ':
+            if COMMAND[-1] == 'Genre':
+                Genre1 = []
+            elif COMMAND[-1] == 'Actors':
+                Actors1 = []
+            else:
+                Movie_deteils1 = []
+                await update.message.reply_text(
+                    "Вы вышли и сбросили параметр",
+                    reply_markup=markup
+                )
 
     # У объекта класса Updater есть поле message,
     # являющееся объектом сообщения.
