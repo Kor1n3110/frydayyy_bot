@@ -5,6 +5,8 @@ from telegram.ext import Application, MessageHandler, filters, CommandHandler, C
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from random import randint
+import sqlite3
+
 from email.mime import application
 
 # Запускаем логгирование
@@ -15,7 +17,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 reply_keyboard = [['/genre', '/movie_details'],
-                  ['/actors', '/favorites'],
+                  ['/actors', '/favorites', '/title'],
                   ['/GO']]
 keyboard_FLAG = False
 genre_FLAG = False
@@ -53,16 +55,26 @@ async def start(update, context):
 async def help_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text("""    Сейчас объясню правила пользования мной.
+
     Команда '/genre', даёт тебе возможность задать жанры кино.
+
     С помощью команды '/movie_details', ты можешь уточнить, что ты хочешь видеть в кино (гонки, супергеоев и т.п.).
+
     Написав '/actors', ты можешь указать актёров, игравшие главные роли в фильме.
+
     Воспользуясь командой '/remind', ты можешь поставить напоминание о кино.
+
     Перейти в избранные - '/favorites',
+
     Добавить в избранные - '/adding_favorites',
+
     Удалить из избранных - '/delete_favorites'.
+
     Ты со мной можешь вести беседу через диалоговую клавиатуру, для её включения нужна команда '/keyboard', для выключения '/close_keyboard'.
+
     Выбырай кино на свой вкус.""")
-    await update.message.reply_text("""    Чтобы начать поиск фильмов, воспользуйтесь командой '/GO'""")
+    await update.message.reply_text("""    Чтобы найти кино по названию, воспользуйтесь командой '/title'""")
+    await update.message.reply_text("""    Чтобы начать поиск кино, воспользуйтесь командой '/GO'""")
 
 
 async def actors_command(update, context):
@@ -151,8 +163,50 @@ async def GO(update, context):
     await update.message.reply_text('Так, а сейчас будем искать кино по вашим интересам)')
 
 
+async def title(update, context):
+    global COMMAND
+    COMMAND.append('Title')
+    await update.message.reply_text('Отправьте мне название кино, и если я его найду, то пришлю всё что о нём узнаю😊')
+
+
 async def MOGHO(update, context):
     global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1
+    if COMMAND[-1] == 'Title':
+        name = str(update.message.text)
+        cinema_po_nazvaniy = []
+        # Подключение к БД
+        con = sqlite3.connect("cinema.db")
+        # Создание курсора
+        cur = con.cursor()
+        # Выполнение запроса и получение всех результатов
+        result = cur.execute(f"""SELECT * FROM cinema_baza_dan""")
+        three_results = cur.fetchmany(210)
+        for i in three_results:
+            if str(i[1]).lower().split() == name.lower().split():
+                cinema_po_nazvaniy = i
+                break
+        if cinema_po_nazvaniy == []:
+            await update.message.reply_text('Извините, я не нашёл это кино😓')
+        else:
+            await update.message.reply_text('НАШЁЛ!')
+            await update.message.reply_text(f'''id: {cinema_po_nazvaniy[0]}
+
+Название: {str(cinema_po_nazvaniy[1])}
+
+Тип: {str(cinema_po_nazvaniy[2].lower())}
+
+Год выпуска: {str(cinema_po_nazvaniy[3])}
+
+Жанр: {str(cinema_po_nazvaniy[4])}
+
+Описание {str(cinema_po_nazvaniy[2].lower())}а: {str(cinema_po_nazvaniy[6])}
+
+Актёры: {str(cinema_po_nazvaniy[7])}
+
+Ссылка на трейлер: {str(cinema_po_nazvaniy[8])}
+
+Ссылка на {str(cinema_po_nazvaniy[2].lower())}: {str(cinema_po_nazvaniy[9])}''')
+
     if update.message.text.upper() == 'ВЫБРАЛ':
         Genre = Genre1
         Movie_deteils = Movie_deteils1
@@ -207,7 +261,7 @@ async def MOGHO(update, context):
 Жанр: {b} 
 Детали: {c}''')
     if COMMAND[-1] == 'Actors':
-        if update.message.text not in Actors1 and not (
+        if not COMMAND == 'Title' or update.message.text not in Actors1 and not (
                 update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
             Actors1.append(update.message.text)
             a = 'Вы выбрали: ' + ', '.join(Actors1)
@@ -215,7 +269,7 @@ async def MOGHO(update, context):
         elif update.message.text in Actors1:
             await update.message.reply_text('Вы уже добавили этого актёра')
     elif COMMAND[-1] == 'Genre':
-        if update.message.text not in Genre1 and not (
+        if not COMMAND == 'Title' or update.message.text not in Genre1 and not (
                 update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
             Genre1.append(update.message.text)
             a = 'Вы выбрали: ' + ', '.join(Genre1)
@@ -223,7 +277,7 @@ async def MOGHO(update, context):
         elif update.message.text in Genre1:
             await update.message.reply_text('Вы уже добавили этот жанр')
     else:
-        if update.message.text.lower() not in Movie_deteils1 and not (
+        if not COMMAND == 'Title' or update.message.text.lower() not in Movie_deteils1 and not (
                 update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
             Movie_deteils1.append(update.message.text.lower())
             a = 'Вы выбрали: ' + ', '.join(Movie_deteils1)
@@ -249,6 +303,7 @@ async def MOGHO(update, context):
                 "Вы вышли и сбросили параметр",
                 reply_markup=markup
             )
+
 
     # У объекта класса Updater есть поле message,
     # являющееся объектом сообщения.
@@ -282,6 +337,7 @@ def main():
     application.add_handler(CommandHandler("keyboard", keyboard))
     application.add_handler(CommandHandler("close_keyboard", close_keyboard))
     application.add_handler(CommandHandler("GO", GO))
+    application.add_handler(CommandHandler('title', title))
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, MOGHO)
     application.add_handler(text_handler)
 
