@@ -5,6 +5,7 @@ from telegram.ext import Application, MessageHandler, filters, CommandHandler, C
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from random import randint
+from random import choice
 import sqlite3
 
 from email.mime import application
@@ -16,8 +17,8 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-reply_keyboard = [['/genre', '/movie_details'],
-                  ['/actors', '/favorites', '/title'],
+reply_keyboard = [['/genre', '/movie_details', '/actors'],
+                  ['/facts', '/favorites', '/title'],
                   ['/GO']]
 keyboard_FLAG = False
 genre_FLAG = False
@@ -71,6 +72,8 @@ async def help_command(update, context):
     Удалить из избранных - '/delete_favorites'.
 
     Ты со мной можешь вести беседу через диалоговую клавиатуру, для её включения нужна команда '/keyboard', для выключения '/close_keyboard'.
+
+    Так же я могу рссказать интересные факты о некоторых фильмах, для этого отправьте мне команду '/facts'
 
     Выбырай кино на свой вкус.""")
     await update.message.reply_text("""    Чтобы найти кино по названию, воспользуйтесь командой '/title'""")
@@ -161,6 +164,13 @@ async def GO(update, context):
 Жанр: {b} 
 Детали: {c}''')
     await update.message.reply_text('Так, а сейчас будем искать кино по вашим интересам)')
+
+
+async def facts(update, contex):
+    await update.message.reply_text('А вы знали?🤔')
+    with open('facts.txt', 'r', encoding="utf8") as fp:
+        sp = fp.readlines()
+    await update.message.reply_text(str(choice(sp)))
 
 
 async def title(update, context):
@@ -304,7 +314,6 @@ async def MOGHO(update, context):
                 reply_markup=markup
             )
 
-
     # У объекта класса Updater есть поле message,
     # являющееся объектом сообщения.
     # У message есть поле text, содержащее текст полученного сообщения,
@@ -338,6 +347,7 @@ def main():
     application.add_handler(CommandHandler("close_keyboard", close_keyboard))
     application.add_handler(CommandHandler("GO", GO))
     application.add_handler(CommandHandler('title', title))
+    application.add_handler(CommandHandler("facts", facts))
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, MOGHO)
     application.add_handler(text_handler)
 
