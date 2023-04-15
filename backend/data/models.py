@@ -49,6 +49,8 @@ class Film(SqlAlchemyBase):
     year = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     type = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     description = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    trailer = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    movie_link = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     favorites = orm.relationship("Favorite", back_populates='film')
     actors = orm.relationship("Actor",
                               secondary="film_to_actor",

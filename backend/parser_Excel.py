@@ -9,7 +9,6 @@ from data import db_session
 
 def main():
     db_session.global_init("db/films.db")
-
     wb2 = load_workbook('data/cinema.xlsx')
     ws = wb2.active
     db_sess = db_session.create_session()
@@ -19,6 +18,8 @@ def main():
         film.type = row[2]
         film.year = row[3]
         film.description = row[6]
+        film.trailer = row[8]
+        film.movie_link = row[9]
         if row[5]:
             for clue in row[5].split(','):
                 clue = clue.strip()
