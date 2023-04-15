@@ -7,7 +7,11 @@ from telegram import ReplyKeyboardRemove
 from random import randint
 from random import choice
 import sqlite3
+from telegram.ext import ApplicationBuilder
 
+proxy_url = "socks5://user:pass@host:port"
+
+app = ApplicationBuilder().token("TOKEN").proxy_url(proxy_url).build()
 from email.mime import application
 
 # Запускаем логгирование
@@ -27,6 +31,8 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 genre_reply_keyboard = [['фентези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
                         ['боевик', 'биография', 'семейный'],
                         ['исторический', 'мультфильм'], ['СБРОС ПАРАМЕТРА', 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ', 'ВЫБРАЛ']]
+# OBOZNACH = ['СБРОС ПАРАМЕТРА', 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ', 'ВЫБРАЛ']
+# oboznach_k = ReplyKeyboardMarkup(OBOZNACH, one_time_keyboard=False)
 
 genre_markup = ReplyKeyboardMarkup(genre_reply_keyboard, one_time_keyboard=False)
 
@@ -48,6 +54,12 @@ nasmeshka = ["Не понимаю, что вы выбрали, если вы н�
 async def start(update, context):
     """Отправляет сообщение когда получена команда /start"""
     user = update.effective_user
+    id_polz = user.mention_html()
+    id_polz = id_polz.split('=')
+    id_polz = str((''.join(id_polz[-1])).split('"')[0])
+    id_polz = id_polz
+    with open(f"{id_polz}_favorites.txt", "a"):
+        pass
     await update.message.reply_html(
         rf"Привет, {user.mention_html()}! Я бот 'Пятница'. Я помогу тебе выбрать кино и напомнить тебе о нём. Для начала напиши '/help'.",
     )
@@ -123,7 +135,12 @@ async def favorites_command(update, contex):
     global COMMAND
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('Секундочку🤔‍')
-    with open('favorites.txt', 'r') as fp:
+    user = update.effective_user
+    id_polz = user.mention_html()
+    id_polz = id_polz.split('=')
+    id_polz = str((''.join(id_polz[-1])).split('"')[0])
+    id_polz = id_polz
+    with open(f'{id_polz}_favorites.txt', 'r') as fp:
         sp = fp.readlines()
     if not sp == []:
         for i in sp:
@@ -247,11 +264,17 @@ async def MOGHO(update, context):
         if ID >= 1 and ID <= 210:
             ID = str(ID)
             # Подключение к БД
-            with open('favorites.txt', 'r') as fp:
+            user = update.effective_user
+            id_polz = user.mention_html()
+            id_polz = id_polz.split('=')
+            id_polz = str((''.join(id_polz[-1])).split('"')[0])
+            id_polz = id_polz
+            with open(f'{id_polz}_favorites.txt', 'r') as fp:
                 sp = fp.readlines()
             if str(ID) + '\n' not in sp:
                 sp.append(str(ID) + '\n')
-                with open('favorites.txt', 'w') as fp:
+                user = update.effective_user
+                with open(f'{id_polz}_favorites.txt', 'w') as fp:
                     for i in sp:
                         sps = fp.write(i)
                 await update.message.reply_text(
@@ -265,13 +288,19 @@ async def MOGHO(update, context):
         SPISOK_NEW = []
         ID_D = int(update.message.text)
         if ID_D >= 1 and ID_D <= 210:
-            with open('favorites.txt', 'r') as fp:
+            user = update.effective_user
+            id_polz = user.mention_html()
+            id_polz = id_polz.split('=')
+            id_polz = str((''.join(id_polz[-1])).split('"')[0])
+            id_polz = id_polz
+            with open(f'{id_polz}_favorites.txt', 'r') as fp:
                 sp = fp.readlines()
             if str(ID_D) + '\n' in sp:
                 for i in sp:
                     if not int(i[:-1]) == ID_D:
                         SPISOK_NEW.append(i)
-                with open('favorites.txt', 'w') as fp:
+                user = update.effective_user
+                with open(f'{id_polz}_favorites.txt', 'w') as fp:
                     for i in SPISOK_NEW:
                         sps = fp.write(i)
                 await update.message.reply_text(
