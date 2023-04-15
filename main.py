@@ -125,8 +125,10 @@ async def favorites_command(update, contex):
 
 
 async def adding_favorites_command(update, contex):
+    global COMMAND
     """Отправляет сообщение когда получена команда /help"""
-    await update.message.reply_text('Я добавлю, когда буду готов...')
+    await update.message.reply_text('Пришли мне id кино, которого хочешь добавить в "избранные"')
+    COMMAND.append('A_F')
 
 
 async def delete_favorites_command(update, contex):
@@ -219,7 +221,21 @@ async def MOGHO(update, context):
 Ссылка на трейлер: {str(cinema_po_nazvaniy[8])}
 
 Ссылка на {str(cinema_po_nazvaniy[2].lower())}: {str(cinema_po_nazvaniy[9])}''')
-
+    if COMMAND[-1] == 'A_F':
+        ID = int(update.message.text)
+        if ID >= 1 and ID <= 210:
+            ID = str(ID)
+            # Подключение к БД
+            with open('favorites.txt', 'r') as fp:
+                sp = fp.readlines()
+            sp.append(str(ID) + '\n')
+            with open('favorites.txt', 'w') as fp:
+                for i in sp:
+                    sps = fp.write(i)
+            await update.message.reply_text(
+                f"Добавил, кино с id {str(ID)} в избранные. Чтобы посмотреть избранные, воспользуйтесь команой '/favorites'")
+        else:
+            await update.message.reply_text('НЕВЕЕРНЫЙ ID😡')
     if update.message.text.upper() == 'ВЫБРАЛ':
         Genre = Genre1
         Movie_deteils = Movie_deteils1
@@ -273,7 +289,7 @@ async def MOGHO(update, context):
 Актёры: {a}
 Жанр: {b} 
 Детали: {c}''')
-    if not COMMAND[-1] == 'Title':
+    if not COMMAND[-1] == 'Title' and not COMMAND[-1] == 'A_F':
         if COMMAND[-1] == 'Actors':
             if update.message.text not in Actors1 and not (
                     update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
