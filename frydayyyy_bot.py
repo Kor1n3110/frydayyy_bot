@@ -120,20 +120,41 @@ async def remind_command(update, contex):
 
 
 async def favorites_command(update, contex):
+    global COMMAND
     """Отправляет сообщение когда получена команда /help"""
-    await update.message.reply_text('В избранных ничего нет')
+    await update.message.reply_text('Секундочку🤔‍')
+    with open('favorites.txt', 'r') as fp:
+        sp = fp.readlines()
+    if not sp == []:
+        for i in sp:
+            Id = i[:-1]
+            con = sqlite3.connect("cinema.db")
+            # Создание курсора
+            cur = con.cursor()
+            # Выполнение запроса и получение всех результатов
+            result = cur.execute(f"""SELECT name FROM cinema_baza_dan WHERE id = {Id}""")
+            three_results = cur.fetchmany(210)
+            for u in three_results:
+                for y in u:
+                    if y[-1] == ' ':
+                        y = y[:-1]
+                    await update.message.reply_text(f'id: {Id} - "{y}"')
+    else:
+        await update.message.reply_text(f'В избранный ничего нет😅')
 
 
 async def adding_favorites_command(update, contex):
     global COMMAND
     """Отправляет сообщение когда получена команда /help"""
-    await update.message.reply_text('Пришли мне id кино, которого хочешь добавить в "избранные"')
+    await update.message.reply_text('Пришли мне id кино, которого хотите добавить в "избранные"')
     COMMAND.append('A_F')
 
 
 async def delete_favorites_command(update, contex):
+    global COMMAND
     """Отправляет сообщение когда получена команда /help"""
-    await update.message.reply_text('Я удалю, когда буду готов...')
+    await update.message.reply_text('Пришли мне id кино, которого хотите удалить из "избранные"')
+    COMMAND.append('D_F')
 
 
 async def keyboard(update, context):
@@ -228,14 +249,39 @@ async def MOGHO(update, context):
             # Подключение к БД
             with open('favorites.txt', 'r') as fp:
                 sp = fp.readlines()
-            sp.append(str(ID) + '\n')
-            with open('favorites.txt', 'w') as fp:
-                for i in sp:
-                    sps = fp.write(i)
-            await update.message.reply_text(
-                f"Добавил, кино с id {str(ID)} в избранные. Чтобы посмотреть избранные, воспользуйтесь команой '/favorites'")
+            if str(ID) + '\n' not in sp:
+                sp.append(str(ID) + '\n')
+                with open('favorites.txt', 'w') as fp:
+                    for i in sp:
+                        sps = fp.write(i)
+                await update.message.reply_text(
+                    f"Добавил кино с id {str(ID)} в избранные. Чтобы посмотреть избранные, воспользуйтесь команой '/favorites'")
+            else:
+                await update.message.reply_text(
+                    f"Кино с id {str(ID)} уже добавлено в избранные. Чтобы посмотреть избранные, воспользуйтесь команой '/favorites'")
         else:
             await update.message.reply_text('НЕВЕЕРНЫЙ ID😡')
+    if COMMAND[-1] == 'D_F':
+        SPISOK_NEW = []
+        ID_D = int(update.message.text)
+        if ID_D >= 1 and ID_D <= 210:
+            with open('favorites.txt', 'r') as fp:
+                sp = fp.readlines()
+            if str(ID_D) + '\n' in sp:
+                for i in sp:
+                    if not int(i[:-1]) == ID_D:
+                        SPISOK_NEW.append(i)
+                with open('favorites.txt', 'w') as fp:
+                    for i in SPISOK_NEW:
+                        sps = fp.write(i)
+                await update.message.reply_text(
+                    f"Удалил кино с id {str(ID_D)} из избранных. Чтобы посмотреть избранные, воспользуйтесь команой '/favorites'")
+            else:
+                await update.message.reply_text(
+                    f"Кино с id {str(ID_D)} не найдено в избранный. Чтобы посмотреть избранные, воспользуйтесь команой '/favorites'")
+        else:
+            await update.message.reply_text('НЕВЕЕРНЫЙ ID😡')
+
     if update.message.text.upper() == 'ВЫБРАЛ':
         Genre = Genre1
         Movie_deteils = Movie_deteils1
@@ -289,7 +335,7 @@ async def MOGHO(update, context):
 Актёры: {a}
 Жанр: {b} 
 Детали: {c}''')
-    if not COMMAND[-1] == 'Title' and not COMMAND[-1] == 'A_F':
+    if not COMMAND[-1] == 'Title' and not COMMAND[-1] == 'A_F' and not COMMAND[-1] == 'D_F':
         if COMMAND[-1] == 'Actors':
             if update.message.text not in Actors1 and not (
                     update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
