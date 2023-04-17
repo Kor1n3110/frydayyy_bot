@@ -37,16 +37,22 @@ class FilmList(Resource):
     def get(self):
         db_sess = db_session.create_session()
         args = request.args
-        # print(args.keys())
-        name = args.get('name')
-        year = args.get('year')
-        offset = args.get('offset', 0)
+        genres = args.getlist('genres')
+        actors = args.getlist('actors')
+        details = args.getlist('details')
+        offset = args.get('offset', 1)
         films = db_sess.query(Film)
-        if year:
-            films = films.filter(Film.year == year)
-        if name:
-            films = films.filter(Film.name.ilike(f'%{name}%'))
-        films = films.limit(10).offset(offset)
+        if genres:
+            films = films.join(Film.genres).filter(Genre.id.in_(genres))
+        if actors:
+            actor_ids = [db_sess.query(Actor.id).filter(Actor.name.ilike(f'%{search}%')).scalar() for
+                         search in actors]
+            films = films.join(Film.actors).filter(Actor.id.in_(actor_ids))
+        if details:
+            details_ids = [db_sess.query(Clue.id).filter(Clue.clue.ilike(f'%{search}%')).scalar() for
+                           search in details]
+            films = films.join(Film.clues).filter(Clue.id.in_(details_ids))
+        films = films.limit(5).offset(offset)
         films_response = [{'id': film.id, 'name': film.name} for film in films]
         return jsonify(films_response)
 
@@ -85,14 +91,25 @@ class Favorites(Resource):
         db_sess = db_session.create_session()
         args = request.json
         film_id = args.get('film_id')
-        if not db_sess.query(Film).get(film_id):
+        if not db_sess.get(Film, film_id):
             abort(404, message=f"Film id {film_id} not found")
-
-        if not db_sess.query(Favorite).filter(Favorite.film_id == film_id, Favorite.tg_id == tg_id):
+        if not db_sess.query(Favorite).filter(Favorite.film_id == film_id,
+                                              Favorite.tg_id == tg_id).first():
+            print('ok')
             favorite = Favorite(film_id=film_id, tg_id=tg_id)
             db_sess.add(favorite)
             db_sess.commit()
         return jsonify({'success': 'OK'})
+
+    def delete(self, tg_id):
+        db_sess = db_session.create_session()
+        film_id = request.args.get('film_id')
+        if not db_sess.query(Favorite).filter(Favorite.film_id == film_id,
+                                              Favorite.tg_id == tg_id).first():
+            abort(404, message=f"Entry not found")
+        db_sess.query(Favorite).filter(Favorite.film_id == film_id, Favorite.tg_id == tg_id).delete()
+        db_sess.commit()
+        return jsonify({'deleted': f'{film_id}'})
 
 
 api.add_resource(FilmInfo, '/film/<film_id>')
