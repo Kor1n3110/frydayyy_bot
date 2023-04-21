@@ -28,7 +28,7 @@ keyboard_FLAG = False
 genre_FLAG = False
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
-genre_reply_keyboard = [['фентези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
+genre_reply_keyboard = [['фэнтези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
                         ['боевик', 'биография', 'семейный'],
                         ['исторический', 'мультфильм'], ['СБРОС ПАРАМЕТРА', 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ', 'ВЫБРАЛ']]
 # OBOZNACH = ['СБРОС ПАРАМЕТРА', 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ', 'ВЫБРАЛ']
@@ -53,6 +53,14 @@ nasmeshka = ["Не понимаю, что вы выбрали, если вы н�
 
 async def start(update, context):
     """Отправляет сообщение когда получена команда /start"""
+    COMMAND = []
+    Genre = []
+    Movie_deteils = []
+    Actors = []
+    # *******
+    Genre1 = []
+    Movie_deteils1 = []
+    Actors1 = []
     user = update.effective_user
     id_polz = user.mention_html()
     id_polz = id_polz.split('=')
@@ -145,7 +153,7 @@ async def favorites_command(update, contex):
     if not sp == []:
         for i in sp:
             Id = i[:-1]
-            con = sqlite3.connect("../cinema.db")
+            con = sqlite3.connect("cinema.db")
             # Создание курсора
             cur = con.cursor()
             # Выполнение запроса и получение всех результатов
@@ -208,7 +216,7 @@ async def GO(update, context):
 Детали: {c}''')
     await update.message.reply_text('Так, а сейчас будем искать кино по вашим интересам)')
     otvet = []
-    con = sqlite3.connect("../cinema.db")
+    con = sqlite3.connect("cinema.db")
     # Создание курсора
     cur = con.cursor()
     # Выполнение запроса и получение всех результатов
@@ -216,25 +224,29 @@ async def GO(update, context):
     three_results = cur.fetchmany(210)
     for u in three_results:
         for i in Genre:
-            if i in u[4] and not u[4] in otvet:
+            if i in u[4] and u[4] not in otvet:
                 otvet.append(u)
         for q in Actors:
-            if q in u[7] and not u[7] in otvet:
+            if q in u[7] and u[7] not in otvet:
                 otvet.append(u)
         for q in Movie_deteils:
-            if q in u[5] and not u[5] in otvet:
+            if q in u[5] and u[5] not in otvet:
                 otvet.append(u)
     await update.message.reply_text('Мы нашли названия фильмов, которые подойдут вам')
+    await update.message.reply_text('😊')
     for u in otvet:
         await update.message.reply_text(str(u[1]))
     await update.message.reply_text('Посмотреть более точную информацию можно с помощью команды /title')
+    Actors = []
+    Movie_deteils = []
+    Genre = []
 
 
 
 
 async def facts(update, contex):
     await update.message.reply_text('А вы знали?🤔')
-    with open('../facts.txt', 'r', encoding="utf8") as fp:
+    with open('facts.txt', 'r', encoding="utf8") as fp:
         sp = fp.readlines()
     await update.message.reply_text(str(choice(sp)))
 
@@ -251,7 +263,7 @@ async def MOGHO(update, context):
         name = str(update.message.text)
         cinema_po_nazvaniy = []
         # Подключение к БД
-        con = sqlite3.connect("../cinema.db")
+        con = sqlite3.connect("cinema.db")
         # Создание курсора
         cur = con.cursor()
         # Выполнение запроса и получение всех результатов
