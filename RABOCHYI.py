@@ -61,6 +61,8 @@ async def start(update, context):
     Genre1 = []
     Movie_deteils1 = []
     Actors1 = []
+    otvet = []
+
     user = update.effective_user
     id_polz = user.mention_html()
     id_polz = id_polz.split('=')
@@ -197,7 +199,7 @@ async def close_keyboard(update, context):
 
 
 async def GO(update, context):
-    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1
+    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1, otvet
     if not Actors == []:
         a = str(', '.join(Actors))
     else:
@@ -234,14 +236,26 @@ async def GO(update, context):
                 otvet.append(u)
     await update.message.reply_text('Мы нашли названия фильмов, которые подойдут вам')
     await update.message.reply_text('😊')
+    if 100 < len(otvet) > 15:
+        otvet = otvet[::-1]
+        otvet = otvet[::-10]
+        otvet = otvet[::-5]
+        otvet = otvet[:14]
+    elif 100 > len(otvet):
+        otvet = otvet[::-19]
+        otvet = otvet[::-40]
+        otvet = otvet[::-35]
+        otvet = otvet[:14]
+    else:
+        otvet = otvet[::-1]
+        otvet = otvet[::-10]
+        otvet = otvet[::-5]
     for u in otvet:
         await update.message.reply_text(str(u[1]))
     await update.message.reply_text('Посмотреть более точную информацию можно с помощью команды /title')
     Actors = []
     Movie_deteils = []
     Genre = []
-
-
 
 
 async def facts(update, contex):
@@ -258,7 +272,7 @@ async def title(update, context):
 
 
 async def MOGHO(update, context):
-    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1
+    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1, otvet
     if COMMAND[-1] == 'Title':
         name = str(update.message.text)
         cinema_po_nazvaniy = []
