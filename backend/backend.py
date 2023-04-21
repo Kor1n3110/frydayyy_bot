@@ -43,16 +43,37 @@ class FilmList(Resource):
         offset = args.get('offset', 1)
         films = db_sess.query(Film)
         if genres:
-            films = films.join(Film.genres).filter(Genre.id.in_(genres))
+            genres_ids = [
+                db_sess.query(Genre.id).filter(Genre.name.ilike(f'%{search}%')).distinct().all()
+                for search in genres]
+            ids = []
+            for _ids in genres_ids:
+                ids += _ids
+            genres_ids = [genre[0] for genre in ids]
+            films = films.join(Film.genres).filter(Genre.id.in_(genres_ids))
         if actors:
-            actor_ids = [db_sess.query(Actor.id).filter(Actor.name.ilike(f'%{search}%')).scalar() for
-                         search in actors]
+            # actor_ids = [db_sess.query(Actor.id).filter(Actor.name.ilike(f'%{search}%')).scalar() for
+            #              search in actors]
+            actor_ids = [
+                db_sess.query(Actor.id).filter(Actor.name.ilike(f'%{search}%')).distinct().all()
+                for search in actors]
+            ids = []
+            for _ids in actor_ids:
+                ids += _ids
+            actor_ids = [actor[0] for actor in ids]
             films = films.join(Film.actors).filter(Actor.id.in_(actor_ids))
         if details:
-            details_ids = [db_sess.query(Clue.id).filter(Clue.clue.ilike(f'%{search}%')).scalar() for
-                           search in details]
-            films = films.join(Film.clues).filter(Clue.id.in_(details_ids))
-        films = films.limit(5).offset(offset)
+            # details_ids = [db_sess.query(Clue.id).filter(Clue.clue.ilike(f'%{search}%')).scalar() for
+            #                search in details]
+            detail_ids = [
+                db_sess.query(Clue.id).filter(Clue.clue.ilike(f'%{search}%')).distinct().all()
+                for search in details]
+            ids = []
+            for _ids in detail_ids:
+                ids += _ids
+            detail_ids = [detail[0] for detail in ids]
+            films = films.join(Film.clues).filter(Clue.id.in_(detail_ids))
+        films = films.limit(6).offset(offset).all()
         films_response = [{'id': film.id, 'name': film.name} for film in films]
         return jsonify(films_response)
 
@@ -70,11 +91,8 @@ class Genres(Resource):
 class Types(Resource):
     def get(self):
         db_sess = db_session.create_session()
-        types_lst = set()
-        films = db_sess.query(Film)
-        for film in films:
-            types_lst.add(film.type)
-        return jsonify(list(types_lst))
+        types = [typ[0] for typ in db_sess.query(Film.type).distinct()]
+        return jsonify(types)
 
 
 class Favorites(Resource):
