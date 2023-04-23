@@ -1,3 +1,5 @@
+import os
+
 from openpyxl import load_workbook
 
 from data.models import Actor
@@ -8,6 +10,7 @@ from data import db_session
 
 
 def main():
+    os.makedirs('db', exist_ok=True)
     db_session.global_init("db/films.db")
     wb2 = load_workbook('data/cinema.xlsx')
     ws = wb2.active

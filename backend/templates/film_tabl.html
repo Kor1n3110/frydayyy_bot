@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Фильмы</title>
+</head>
+<body>
+<table>
+    {% for item in films %}
+    <tr>
+        <td><a href="/edit_film/{{item['id']}}">{{item["id"]}}</a></td>
+        <td>{{item["name"]}}</td>
+        <td>{{item["year"]}}</td>
+    </tr>
+    {% endfor %}
+</table>
+</body>
+</html>
