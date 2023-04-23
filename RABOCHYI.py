@@ -223,7 +223,7 @@ async def GO(update, context):
                     if y in u[5] and y not in context.user_data['otvet']:
                         context.user_data['otvet'] = context.user_data['otvet'] + [u]
         elif len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) == 0:
-            if len(context.user_data['Genre']) == 0:
+            if len(context.user_data['Genre']) > 0:
                 for y in context.user_data['Genre']:
                     if y in u[5] and y not in context.user_data['otvet']:
                         context.user_data['otvet'] = context.user_data['otvet'] + [u]
