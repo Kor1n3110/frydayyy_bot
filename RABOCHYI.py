@@ -8,6 +8,7 @@ from random import randint
 from random import choice
 import sqlite3
 import random
+import requests
 from telegram.ext import ApplicationBuilder
 
 proxy_url = "socks5://user:pass@host:port"
@@ -364,7 +365,7 @@ async def MOGHO(update, context):
         elif context.user_data['COMMAND'][-1] == 'Actors':
             if not context.user_data['Actors1'] == []:
                 await update.message.reply_text(
-                    "Замечательно, вы выбрали актёров, ирающих в вашем кино.",
+                    "Замечательно, вы выбрали актёров, играющих в вашем кино.",
                     reply_markup=markup
                 )
             else:
