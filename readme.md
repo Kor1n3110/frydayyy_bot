@@ -9,3 +9,4 @@
 6. Создайте базу командой `python parser_Excel.py`
 7. Создайте учетную запись админа командой `python createsuperuser.py`
 8. Запустите backend командой `python backenf.py`
+9. Запустите бота командой `python RABOCHYI.py`
