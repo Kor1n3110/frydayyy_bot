@@ -156,7 +156,7 @@ async def favorites_command(update, context):
                         y = y[:-1]
                     await update.message.reply_text(f'id: {Id} - "{y}"')
     else:
-        await update.message.reply_text(f'В избранный ничего нет😅')
+        await update.message.reply_text(f'В избранных ничего нет😅')
 
 
 async def adding_favorites_command(update, context):
