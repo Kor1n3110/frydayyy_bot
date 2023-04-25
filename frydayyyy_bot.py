@@ -7,6 +7,8 @@ from telegram import ReplyKeyboardRemove
 from random import randint
 from random import choice
 import sqlite3
+import random
+import requests
 from telegram.ext import ApplicationBuilder
 
 proxy_url = "socks5://user:pass@host:port"
@@ -28,22 +30,16 @@ keyboard_FLAG = False
 genre_FLAG = False
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
-genre_reply_keyboard = [['фентези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
+genre_reply_keyboard = [['фэнтези', 'ужасы', 'драма'], ['детектив', 'приключения', 'комедия'],
                         ['боевик', 'биография', 'семейный'],
                         ['исторический', 'мультфильм'], ['СБРОС ПАРАМЕТРА', 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ', 'ВЫБРАЛ']]
-# OBOZNACH = ['СБРОС ПАРАМЕТРА', 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ', 'ВЫБРАЛ']
-# oboznach_k = ReplyKeyboardMarkup(OBOZNACH, one_time_keyboard=False)
+
+com_k = [['СБРОС ПАРАМЕТРА', 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ', 'ВЫБРАЛ']]
+com_key = ReplyKeyboardMarkup(com_k, one_time_keyboard=False)
+
 
 genre_markup = ReplyKeyboardMarkup(genre_reply_keyboard, one_time_keyboard=False)
 
-COMMAND = []
-Genre = []
-Movie_deteils = []
-Actors = []
-# *******
-Genre1 = []
-Movie_deteils1 = []
-Actors1 = []
 nasmeshka = ["Не понимаю, что вы выбрали, если вы ничего не выбрали... хотя ладно, мне никогда вас не понять",
              'Вы же ничего не выбрали...', 'Вы шутите так?', 'Я промолчу...']
 
@@ -63,6 +59,15 @@ async def start(update, context):
     await update.message.reply_html(
         rf"Привет, {user.mention_html()}! Я бот 'Пятница'. Я помогу тебе выбрать кино и напомнить тебе о нём. Для начала напиши '/help'.",
     )
+    context.user_data['COMMAND'] = []
+    context.user_data['Genre'] = []
+    context.user_data['Genre1'] = []
+    context.user_data['Actors'] = []
+    context.user_data['Actors1'] = []
+    context.user_data['Movie_deteils'] = []
+    context.user_data['Movie_deteils1'] = []
+    context.user_data['otvet'] = []
+    print(context.user_data['COMMAND'])
 
 
 async def help_command(update, context):
@@ -74,8 +79,6 @@ async def help_command(update, context):
     С помощью команды '/movie_details', ты можешь уточнить, что ты хочешь видеть в кино (гонки, супергеоев и т.п.).
 
     Написав '/actors', ты можешь указать актёров, игравшие главные роли в фильме.
-
-    Воспользуясь командой '/remind', ты можешь поставить напоминание о кино.
 
     Перейти в избранные - '/favorites',
 
@@ -96,13 +99,12 @@ async def help_command(update, context):
 
 
 async def actors_command(update, context):
-    global COMMAND
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text(
         'Укажите главных героев кино',
-        reply_markup=ReplyKeyboardRemove()
+        reply_markup=com_key
     )
-    COMMAND.append('Actors')
+    context.user_data['COMMAND'] = context.user_data['COMMAND'] + ['Actors']
 
 
 async def genre_command(update, context):
@@ -112,27 +114,24 @@ async def genre_command(update, context):
         "Виберите жанры кино",
         reply_markup=genre_markup
     )
-    COMMAND.append('Genre')
-    # await update.message.reply_text(str(', '.join(COMMAND)))
+    context.user_data['COMMAND'] = context.user_data['COMMAND'] + ['Genre']
 
 
 async def movie_details_command(update, context):
-    global COMMAND
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text(
         'Заишите, что вы хотите видеть в кино',
-        reply_markup=ReplyKeyboardRemove()
+        reply_markup=com_key
     )
-    COMMAND.append('Movie_deteils')
+    context.user_data['COMMAND'] = context.user_data['COMMAND'] + ['Movie_deteils']
 
 
-async def remind_command(update, contex):
+async def remind_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('хорошо, напомню!🫡')
 
 
-async def favorites_command(update, contex):
-    global COMMAND
+async def favorites_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('Секундочку🤔‍')
     user = update.effective_user
@@ -160,18 +159,16 @@ async def favorites_command(update, contex):
         await update.message.reply_text(f'В избранный ничего нет😅')
 
 
-async def adding_favorites_command(update, contex):
-    global COMMAND
+async def adding_favorites_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('Пришли мне id кино, которого хотите добавить в "избранные"')
-    COMMAND.append('A_F')
+    context.user_data['COMMAND'] = context.user_data['COMMAND'] + ['A_F']
 
 
-async def delete_favorites_command(update, contex):
-    global COMMAND
+async def delete_favorites_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     await update.message.reply_text('Пришли мне id кино, которого хотите удалить из "избранные"')
-    COMMAND.append('D_F')
+    context.user_data['COMMAND'] = context.user_data['COMMAND'] + ['D_F']
 
 
 async def keyboard(update, context):
@@ -189,24 +186,67 @@ async def close_keyboard(update, context):
 
 
 async def GO(update, context):
-    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1
-    if not Actors == []:
-        a = str(', '.join(Actors))
+    if not context.user_data['Actors'] == []:
+        a = str(', '.join(context.user_data['Actors']))
     else:
-        a = 'Не выбрал...'
-    if not Genre == []:
-        b = str(', '.join(Genre))
+        a = 'Не выбрали...'
+    if not context.user_data['Genre'] == []:
+        b = str(', '.join(context.user_data['Genre']))
+        print(b)
     else:
-        b = 'Не выбрал...'
-    if not Movie_deteils == []:
-        c = str(', '.join(Movie_deteils))
+        b = 'Не выбрали...'
+    if not context.user_data['Movie_deteils'] == []:
+        c = str(', '.join(context.user_data['Movie_deteils']))
     else:
-        c = 'Не выбрал...'
+        c = 'Не выбрали...'
     await update.message.reply_text(f'''Вы выбрали:
 Актёры: {a}
-Жанр: {b} 
+Жанр: {b}
 Детали: {c}''')
     await update.message.reply_text('Так, а сейчас будем искать кино по вашим интересам)')
+    con = sqlite3.connect("cinema.db")
+    # Создание курсора
+    cur = con.cursor()
+    # Выполнение запроса и получение всех результатов
+    result = cur.execute(f"""SELECT * FROM cinema_baza_dan""")
+    three_results = cur.fetchmany(210)
+    for u in three_results:
+        print(u[4])
+        print(len(context.user_data['Genre']), len(context.user_data['Actors']), len(context.user_data['Movie_deteils']))
+        if len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) > 0:
+            print(1)
+            for i in context.user_data['Genre']:
+                if i in u[4] and i not in context.user_data['otvet']:
+                    for y in context.user_data['Movie_deteils']:
+                        if y in u[5] and y not in context.user_data['otvet']:
+                            context.user_data['otvet'] = context.user_data['otvet'] + [u]
+        if len(context.user_data['Genre']) == 0 and len(context.user_data['Movie_deteils']) > 0:
+            print(2)
+            for y in context.user_data['Movie_deteils']:
+                if y in u[5] and y not in context.user_data['otvet']:
+                    context.user_data['otvet'] = context.user_data['otvet'] + [u]
+        if len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) == 0:
+            for k in context.user_data['Genre']:
+                if k in u[4] and k not in context.user_data['otvet']:
+                    context.user_data['otvet'] = context.user_data['otvet'] + [u]
+        if len(context.user_data['Actors']) > 0:
+            for i in context.user_data['Actors']:
+                if i in u[7] and i not in context.user_data['otvet']:
+                    context.user_data['otvet'] = context.user_data['otvet'] + [u]
+    if not context.user_data['otvet'] == []:
+        await update.message.reply_text('Мы нашли названия фильмов, которые подойдут вам')
+        await update.message.reply_text('😊')
+        for o in context.user_data['otvet']:
+            await update.message.reply_text(str(o[1]))
+        await update.message.reply_text('Посмотреть более точную информацию можно с помощью команды /title')
+    context.user_data['COMMAND'] = []
+    context.user_data['Genre'] = []
+    context.user_data['Genre1'] = []
+    context.user_data['Actors'] = []
+    context.user_data['Actors1'] = []
+    context.user_data['Movie_deteils'] = []
+    context.user_data['otvet'] = []
+    context.user_data['Movie_deteils1'] = []
 
 
 async def facts(update, contex):
@@ -217,14 +257,12 @@ async def facts(update, contex):
 
 
 async def title(update, context):
-    global COMMAND
-    COMMAND.append('Title')
+    context.user_data['COMMAND'] = context.user_data['COMMAND'] + ['Title']
     await update.message.reply_text('Отправьте мне название кино, и если я его найду, то пришлю всё что о нём узнаю😊')
 
 
 async def MOGHO(update, context):
-    global Genre, COMMAND, Movie_deteils, Actors, genre_FLAG, keyboard_FLAG, Genre1, Movie_deteils1, Actors1
-    if COMMAND[-1] == 'Title':
+    if context.user_data['COMMAND'][-1] == 'Title':
         name = str(update.message.text)
         cinema_po_nazvaniy = []
         # Подключение к БД
@@ -259,11 +297,10 @@ async def MOGHO(update, context):
 Ссылка на трейлер: {str(cinema_po_nazvaniy[8])}
 
 Ссылка на {str(cinema_po_nazvaniy[2].lower())}: {str(cinema_po_nazvaniy[9])}''')
-    if COMMAND[-1] == 'A_F':
+    if context.user_data['COMMAND'][-1] == 'A_F':
         ID = int(update.message.text)
         if ID >= 1 and ID <= 210:
             ID = str(ID)
-            # Подключение к БД
             user = update.effective_user
             id_polz = user.mention_html()
             id_polz = id_polz.split('=')
@@ -284,8 +321,8 @@ async def MOGHO(update, context):
                     f"Кино с id {str(ID)} уже добавлено в избранные. Чтобы посмотреть избранные, воспользуйтесь команой '/favorites'")
         else:
             await update.message.reply_text('НЕВЕЕРНЫЙ ID😡')
-    if COMMAND[-1] == 'D_F':
-        SPISOK_NEW = []
+    if context.user_data['COMMAND'][-1] == 'D_F':
+        context.user_data['SPISOK_NEW'] = []
         ID_D = int(update.message.text)
         if ID_D >= 1 and ID_D <= 210:
             user = update.effective_user
@@ -298,10 +335,10 @@ async def MOGHO(update, context):
             if str(ID_D) + '\n' in sp:
                 for i in sp:
                     if not int(i[:-1]) == ID_D:
-                        SPISOK_NEW.append(i)
+                        context.user_data['SPISOK_NEW'] = context.user_data['SPISOK_NEW'] + [i]
                 user = update.effective_user
                 with open(f'{id_polz}_favorites.txt', 'w') as fp:
-                    for i in SPISOK_NEW:
+                    for i in context.user_data['SPISOK_NEW']:
                         sps = fp.write(i)
                 await update.message.reply_text(
                     f"Удалил кино с id {str(ID_D)} из избранных. Чтобы посмотреть избранные, воспользуйтесь команой '/favorites'")
@@ -312,11 +349,11 @@ async def MOGHO(update, context):
             await update.message.reply_text('НЕВЕЕРНЫЙ ID😡')
 
     if update.message.text.upper() == 'ВЫБРАЛ':
-        Genre = Genre1
-        Movie_deteils = Movie_deteils1
-        Actors = Actors1
-        if COMMAND[-1] == 'Genre':
-            if not Genre1 == []:
+        context.user_data['Genre'] = context.user_data['Genre1']
+        context.user_data['Movie_deteils'] = context.user_data['Movie_deteils1']
+        context.user_data['Actors'] = context.user_data['Actors1']
+        if context.user_data['COMMAND'][-1] == 'Genre':
+            if not context.user_data['Genre1'] == []:
                 await update.message.reply_text(
                     "Замечательно, вы выбрали жанр своего кино.",
                     reply_markup=markup
@@ -326,10 +363,10 @@ async def MOGHO(update, context):
                     nasmeshka[randint(0, 3)],
                     reply_markup=markup
                 )
-        elif COMMAND[-1] == 'Actors':
-            if not Actors1 == []:
+        elif context.user_data['COMMAND'][-1] == 'Actors':
+            if not context.user_data['Actors1'] == []:
                 await update.message.reply_text(
-                    "Замечательно, вы выбрали актёров, ираюющих в вашем кино.",
+                    "Замечательно, вы выбрали актёров, играющих в вашем кино.",
                     reply_markup=markup
                 )
             else:
@@ -338,7 +375,7 @@ async def MOGHO(update, context):
                     reply_markup=markup
                 )
         else:
-            if not Movie_deteils1 == []:
+            if not context.user_data['Movie_deteils1'] == []:
                 await update.message.reply_text(
                     "Замечательно, вы выбрали детали вашего кино.",
                     reply_markup=markup
@@ -348,87 +385,73 @@ async def MOGHO(update, context):
                     nasmeshka[randint(0, 3)],
                     reply_markup=markup
                 )
-        if not Actors == []:
-            a = str(', '.join(Actors))
+        if not context.user_data['Actors'] == []:
+            a = str(', '.join(context.user_data['Actors']))
         else:
             a = 'Не выбрал...'
-        if not Genre == []:
-            b = str(', '.join(Genre))
+        if not context.user_data['Genre'] == []:
+            b = str(', '.join(context.user_data['Genre']))
         else:
             b = 'Не выбрал...'
-        if not Movie_deteils == []:
-            c = str(', '.join(Movie_deteils))
+        if not context.user_data['Movie_deteils'] == []:
+            c = str(', '.join(context.user_data['Movie_deteils']))
         else:
             c = 'Не выбрал...'
         await update.message.reply_text(f'''Вы выбрали:
 Актёры: {a}
 Жанр: {b} 
 Детали: {c}''')
-    if not COMMAND[-1] == 'Title' and not COMMAND[-1] == 'A_F' and not COMMAND[-1] == 'D_F':
-        if COMMAND[-1] == 'Actors':
-            if update.message.text not in Actors1 and not (
+    if not context.user_data['COMMAND'][-1] == 'Title' and not context.user_data['COMMAND'][-1] == 'A_F' and not \
+            context.user_data['COMMAND'][-1] == 'D_F':
+        if context.user_data['COMMAND'][-1] == 'Actors':
+            if update.message.text not in context.user_data['Actors1'] and not (
                     update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
-                Actors1.append(update.message.text)
-                a = 'Вы выбрали: ' + ', '.join(Actors1)
+                context.user_data['Actors1'] += [update.message.text]
+                a = 'Вы выбрали: ' + ', '.join(context.user_data['Actors1'])
                 await update.message.reply_text(str(a))
-            elif update.message.text in Actors1:
+            elif update.message.text in context.user_data['Actors1']:
                 await update.message.reply_text('Вы уже добавили этого актёра')
-        elif COMMAND[-1] == 'Genre':
-            if update.message.text not in Genre1 and not (
+        elif context.user_data['COMMAND'][-1] == 'Genre':
+            print(context.user_data['COMMAND'])
+            if update.message.text not in context.user_data['Genre1'] and not (
                     update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
-                Genre1.append(update.message.text)
-                a = 'Вы выбрали: ' + ', '.join(Genre1)
+                context.user_data['Genre1'] += [update.message.text]
+                print(context.user_data['Genre1'])
+                a = 'Вы выбрали: ' + ', '.join(context.user_data['Genre1'])
                 await update.message.reply_text(str(a))
-            elif update.message.text in Genre1:
+            elif update.message.text in context.user_data['Genre1']:
                 await update.message.reply_text('Вы уже добавили этот жанр')
         else:
-            if update.message.text.lower() not in Movie_deteils1 and not (
+            if update.message.text.lower() not in context.user_data['Movie_deteils1'] and not (
                     update.message.text.upper() == 'ВЫБРАЛ' or update.message.text.upper() == 'СБРОС ПАРАМЕТРА' or update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ'):
-                Movie_deteils1.append(update.message.text.lower())
-                a = 'Вы выбрали: ' + ', '.join(Movie_deteils1)
+                context.user_data['Movie_deteils1'] += [update.message.text.lower()]
+                a = 'Вы выбрали: ' + ', '.join(context.user_data['Movie_deteils1'])
                 await update.message.reply_text(str(a))
-            elif update.message.text in Movie_deteils1:
+            elif update.message.text in context.user_data['Movie_deteils1']:
                 await update.message.reply_text('Вы уже добавили эту деталь')
         if update.message.text.upper() == 'СБРОС ПАРАМЕТРА':
-            if COMMAND[-1] == 'Genre':
-                Genre = []
-            elif COMMAND[-1] == 'Actors':
-                Actors = []
+            if context.user_data['COMMAND'][-1] == 'Genre':
+                context.user_data['Genre'] = []
+            elif context.user_data['COMMAND'][-1] == 'Actors':
+                context.user_data['Actors'] = []
             else:
-                Movie_deteils = []
+                context.user_data['Movie_deteils'] = []
             await update.message.reply_text('Параметр сброшен')
         if update.message.text.upper() == 'СБРОСИТЬ ПАРАМЕТР И ВЫЙТИ':
-            if COMMAND[-1] == 'Genre':
-                Genre1 = []
-            elif COMMAND[-1] == 'Actors':
-                Actors1 = []
+            if context.user_data['COMMAND'][-1] == 'Genre':
+                context.user_data['Genre1'] = []
+            elif context.user_data['COMMAND'][-1] == 'Actors':
+                context.user_data['Actors1'] = []
             else:
-                Movie_deteils1 = []
+                context.user_data['Movie_deteils1'] = []
                 await update.message.reply_text(
                     "Вы вышли и сбросили параметр",
                     reply_markup=markup
                 )
 
-    # У объекта класса Updater есть поле message,
-    # являющееся объектом сообщения.
-    # У message есть поле text, содержащее текст полученного сообщения,
-    # а также метод reply_text(str),
-    # отсылающий ответ пользователю, от которого получено сообщение.
-    # -------------********************
-    # await update.message.reply_text(update.message.text)
-    # await update.message.reply_text(', '.join(COMMAND))
-    # -------------********************
-
 
 def main():
-    # Создаём объект Application.
-    # Вместо слова "TOKEN" надо разместить полученный от @BotFather токен
     application = Application.builder().token(BOT_TOKEN).build()
-    # Создаём обработчик сообщений типа filters.TEXT
-    # из описанной выше асинхронной функции echo()
-    # После регистрации обработчика в приложении
-    # эта асинхронная функция будет вызываться при получении сообщения
-    # с типом "текст", т. е. текстовых сообщений.
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("genre", genre_command))
     application.add_handler(CommandHandler("movie_details", movie_details_command))
@@ -446,10 +469,8 @@ def main():
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, MOGHO)
     application.add_handler(text_handler)
 
-    # Запускаем приложение.
     application.run_polling()
 
 
-# Запускаем функцию main() в случае запуска скрипта.
 if __name__ == '__main__':
     main()
