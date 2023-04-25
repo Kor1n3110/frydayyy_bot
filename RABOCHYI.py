@@ -239,6 +239,11 @@ async def GO(update, context):
         for o in context.user_data['otvet']:
             await update.message.reply_text(str(o[1]))
         await update.message.reply_text('Посмотреть более точную информацию можно с помощью команды /title')
+        film_id = 2
+        response = requests.get(f'http://127.0.0.1:5000/film/{film_id}')
+        if response.ok:
+            blabla = response.json()
+            print(blabla)
     context.user_data['COMMAND'] = []
     context.user_data['Genre'] = []
     context.user_data['Genre1'] = []
