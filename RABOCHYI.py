@@ -78,7 +78,7 @@ async def help_command(update, context):
 
     С помощью команды '/movie_details', ты можешь уточнить, что ты хочешь видеть в кино (гонки, супергеоев и т.п.).
 
-    Написав '/actors', ты можешь указать актёров, игравших главные роли в фильме.
+    Написав '/actors', ты можешь указать актёров, игравшие главные роли в фильме.
 
     Перейти в избранные - '/favorites',
 
@@ -156,7 +156,7 @@ async def favorites_command(update, context):
                         y = y[:-1]
                     await update.message.reply_text(f'id: {Id} - "{y}"')
     else:
-        await update.message.reply_text(f'В избранных ничего нет😅')
+        await update.message.reply_text(f'В избранный ничего нет😅')
 
 
 async def adding_favorites_command(update, context):
@@ -211,23 +211,24 @@ async def GO(update, context):
     result = cur.execute(f"""SELECT * FROM cinema_baza_dan""")
     three_results = cur.fetchmany(210)
     for u in three_results:
-        print(len(context.user_data['Genre']))
+        print(u[4])
+        print(len(context.user_data['Genre']), len(context.user_data['Actors']), len(context.user_data['Movie_deteils']))
         if len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) > 0:
+            print(1)
             for i in context.user_data['Genre']:
                 if i in u[4] and i not in context.user_data['otvet']:
                     for y in context.user_data['Movie_deteils']:
                         if y in u[5] and y not in context.user_data['otvet']:
                             context.user_data['otvet'] = context.user_data['otvet'] + [u]
-        elif len(context.user_data['Genre']) == 0 and len(context.user_data['Movie_deteils']) > 0:
-            if len(context.user_data['Movie_deteils']) > 0:
-                for y in context.user_data['Movie_deteils']:
-                    if y in u[5] and y not in context.user_data['otvet']:
-                        context.user_data['otvet'] = context.user_data['otvet'] + [u]
-        elif len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) == 0:
-            if len(context.user_data['Genre']) > 0:
-                for y in context.user_data['Genre']:
-                    if y in u[5] and y not in context.user_data['otvet']:
-                        context.user_data['otvet'] = context.user_data['otvet'] + [u]
+        if len(context.user_data['Genre']) == 0 and len(context.user_data['Movie_deteils']) > 0:
+            print(2)
+            for y in context.user_data['Movie_deteils']:
+                if y in u[5] and y not in context.user_data['otvet']:
+                    context.user_data['otvet'] = context.user_data['otvet'] + [u]
+        if len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) == 0:
+            for k in context.user_data['Genre']:
+                if k in u[4] and k not in context.user_data['otvet']:
+                    context.user_data['otvet'] = context.user_data['otvet'] + [u]
         if len(context.user_data['Actors']) > 0:
             for i in context.user_data['Actors']:
                 if i in u[7] and i not in context.user_data['otvet']:
