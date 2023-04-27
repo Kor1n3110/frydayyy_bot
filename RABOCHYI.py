@@ -211,23 +211,24 @@ async def GO(update, context):
     result = cur.execute(f"""SELECT * FROM cinema_baza_dan""")
     three_results = cur.fetchmany(210)
     for u in three_results:
-        print(len(context.user_data['Genre']))
+        print(u[4])
+        print(len(context.user_data['Genre']), len(context.user_data['Actors']), len(context.user_data['Movie_deteils']))
         if len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) > 0:
+            print(1)
             for i in context.user_data['Genre']:
                 if i in u[4] and i not in context.user_data['otvet']:
                     for y in context.user_data['Movie_deteils']:
                         if y in u[5] and y not in context.user_data['otvet']:
                             context.user_data['otvet'] = context.user_data['otvet'] + [u]
-        elif len(context.user_data['Genre']) == 0 and len(context.user_data['Movie_deteils']) > 0:
-            if len(context.user_data['Movie_deteils']) > 0:
-                for y in context.user_data['Movie_deteils']:
-                    if y in u[5] and y not in context.user_data['otvet']:
-                        context.user_data['otvet'] = context.user_data['otvet'] + [u]
-        elif len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) == 0:
-            if len(context.user_data['Genre']) > 0:
-                for y in context.user_data['Genre']:
-                    if y in u[5] and y not in context.user_data['otvet']:
-                        context.user_data['otvet'] = context.user_data['otvet'] + [u]
+        if len(context.user_data['Genre']) == 0 and len(context.user_data['Movie_deteils']) > 0:
+            print(2)
+            for y in context.user_data['Movie_deteils']:
+                if y in u[5] and y not in context.user_data['otvet']:
+                    context.user_data['otvet'] = context.user_data['otvet'] + [u]
+        if len(context.user_data['Genre']) > 0 and len(context.user_data['Movie_deteils']) == 0:
+            for k in context.user_data['Genre']:
+                if k in u[4] and k not in context.user_data['otvet']:
+                    context.user_data['otvet'] = context.user_data['otvet'] + [u]
         if len(context.user_data['Actors']) > 0:
             for i in context.user_data['Actors']:
                 if i in u[7] and i not in context.user_data['otvet']:
@@ -238,6 +239,11 @@ async def GO(update, context):
         for o in context.user_data['otvet']:
             await update.message.reply_text(str(o[1]))
         await update.message.reply_text('Посмотреть более точную информацию можно с помощью команды /title')
+        film_id = 2
+        response = requests.get(f'http://127.0.0.1:5000/film/{film_id}')
+        if response.ok:
+            blabla = response.json()
+            print(blabla)
     context.user_data['COMMAND'] = []
     context.user_data['Genre'] = []
     context.user_data['Genre1'] = []
