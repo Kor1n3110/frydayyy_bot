@@ -10,3 +10,4 @@
 7. Создайте учетную запись админа командой `python createsuperuser.py`
 8. Запустите backend командой `python backenf.py`
 9. Запустите бота командой `python RABOCHYI.py`
+10. Запуск веб-страницы с сервера https://frydayyy.3m.ru/login

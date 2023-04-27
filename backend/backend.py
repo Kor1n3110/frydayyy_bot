@@ -50,7 +50,7 @@ class FilmList(Resource):
         genres = args.getlist('genres')
         actors = args.getlist('actors')
         details = args.getlist('details')
-        offset = args.get('offset', 1)
+        offset = args.get('offset', 0)
         films = db_sess.query(Film)
         if genres:
             genres_ids = [
@@ -83,7 +83,8 @@ class FilmList(Resource):
                 ids += _ids
             detail_ids = [detail[0] for detail in ids]
             films = films.join(Film.clues).filter(Clue.id.in_(detail_ids))
-        films = films.limit(6).offset(offset).all()
+        # films = films.offset(offset).limit(5).all()
+        films = films.all()[offset: offset + 5]
         films_response = [{'id': film.id, 'name': film.name} for film in films]
         return jsonify(films_response)
 
